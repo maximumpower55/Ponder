@@ -4,6 +4,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -27,20 +28,37 @@ import net.minecraft.world.level.block.state.BlockState;
 public class MultiLayerModelRenderer implements VertexConsumer {
 	private static final ThreadLocal<MultiLayerModelRenderer> INSTANCE = ThreadLocal.withInitial(MultiLayerModelRenderer::new);
 
-	private final WrapperModel wrapperModel = new WrapperModel();
-	private Function<RenderType, VertexConsumer> bufferMap;
-	private RenderType defaultLayer;
-
-	private VertexConsumer bufferDelegate;
-
 	public static void render(BakedModel model, PoseStack ms, BlockState state, Function<RenderType, VertexConsumer> bufferMap) {
 		MultiLayerModelRenderer instance = INSTANCE.get();
-		instance.wrapperModel.setWrapped(model);
-		instance.bufferMap = bufferMap;
-		instance.defaultLayer = ItemBlockRenderTypes.getChunkRenderType(state);
+		instance.prepare(bufferMap, ItemBlockRenderTypes.getChunkRenderType(state));
 
 		Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-			.tesselateBlock(EmptyVirtualBlockGetter.FULL_BRIGHT, instance.wrapperModel, state, BlockPos.ZERO, ms, instance, false, RandomSource.create(), 42L, OverlayTexture.NO_OVERLAY);
+			.tesselateBlock(EmptyVirtualBlockGetter.FULL_BRIGHT, instance.wrapModel(model), state, BlockPos.ZERO, ms, instance, false, RandomSource.create(), 42L, OverlayTexture.NO_OVERLAY);
+
+		instance.clear();
+	}
+
+	private final WrapperModel wrapperModel = new WrapperModel();
+	@UnknownNullability
+	private Function<RenderType, VertexConsumer> bufferMap;
+	@UnknownNullability
+	private RenderType defaultLayer;
+
+	@UnknownNullability
+	private VertexConsumer bufferDelegate;
+
+	private void prepare(Function<RenderType, VertexConsumer> bufferMap, RenderType defaultLayer) {
+		this.bufferMap = bufferMap;
+		this.defaultLayer = defaultLayer;
+	}
+
+	private void clear() {
+		this.wrapperModel.setWrapped(null);
+	}
+
+	private BakedModel wrapModel(BakedModel model) {
+		this.wrapperModel.setWrapped(model);
+		return this.wrapperModel;
 	}
 
 	private void prepareForGeometry(RenderMaterial material) {

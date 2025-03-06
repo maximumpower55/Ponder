@@ -1,23 +1,22 @@
 package net.createmod.catnip.render;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
-import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.catnip.data.Iterate;
-import net.minecraft.client.Minecraft;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
-
-import org.jetbrains.annotations.Nullable;
 
 public class BasicFluidRenderer {
 
@@ -42,9 +41,9 @@ public class BasicFluidRenderer {
 
 	public static void renderFluidBox(Fluid fluid, long amount, float xMin, float yMin, float zMin, float xMax,
 			float yMax, float zMax, VertexConsumer builder, PoseStack ms, int light, boolean renderBottom, boolean invertGasses, @Nullable CompoundTag fluidData) {
-		TextureAtlasSprite fluidTexture = Minecraft.getInstance()
-				.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-				.apply(CatnipServices.FLUID_HELPER.getStillTexture(fluid, amount, fluidData));
+		TextureAtlasSprite fluidTexture = CatnipServices.FLUID_HELPER.getStillTexture(fluid, amount, fluidData);
+		if (fluidTexture == null)
+			return;
 
 		int color = CatnipServices.FLUID_HELPER.getColor(fluid, amount, fluidData);
 		int blockLightIn = (light >> 4) & 0xF;
@@ -165,7 +164,7 @@ public class BasicFluidRenderer {
 		builder.vertex(peek.pose(), x, y, z)
 				.color(r, g, b, a)
 				.uv(u, v)
-				//.overlayCoords(OverlayTexture.NO_OVERLAY)
+				.overlayCoords(OverlayTexture.NO_OVERLAY)
 				.uv2(light)
 				.normal(peek.normal(), normal.getX(), normal.getY(), normal.getZ())
 				.endVertex();

@@ -40,7 +40,7 @@ public class SuperBufferFactory {
 
 		ShadedBlockSbbBuilder sbbBuilder = objects.sbbBuilder;
 		sbbBuilder.begin();
-		sbbBuilder.renderBlock(EmptyVirtualBlockGetter.FULL_DARK, model, state, BlockPos.ZERO, poseStack, random);
+		sbbBuilder.bufferBlock(EmptyVirtualBlockGetter.FULL_DARK, model, state, BlockPos.ZERO, poseStack, random);
 		return sbbBuilder.end();
 	}
 

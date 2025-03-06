@@ -38,6 +38,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -413,30 +414,30 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 	private void renderBlockEntities(PonderLevel world, PoseStack ms, MultiBufferSource buffer, float pt) {
 		loadBEsIfMissing(world);
 
-		Iterator<BlockEntity> iterator = renderedBlockEntities.iterator();
+		@SuppressWarnings("DataFlowIssue")
+		Iterator<BlockEntity> iterator = this.renderedBlockEntities.iterator();
+		BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
 		while (iterator.hasNext()) {
-			BlockEntity tile = iterator.next();
-			BlockEntityRenderer<BlockEntity> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tile);
+			BlockEntity be = iterator.next();
+			BlockEntityRenderer<BlockEntity> renderer = dispatcher.getRenderer(be);
 			if (renderer == null) {
 				iterator.remove();
 				continue;
 			}
 
-			BlockPos pos = tile.getBlockPos();
+			BlockPos pos = be.getBlockPos();
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
 
 			try {
-				renderer.render(tile, pt, ms, buffer, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
-
+				renderer.render(be, pt, ms, buffer, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
 			} catch (Exception e) {
 				iterator.remove();
-				String message = "BlockEntity " + CatnipServices.REGISTRIES.getKeyOrThrow(tile.getType())
-						.toString() + " could not be rendered virtually.";
+				String message = "BlockEntity " + CatnipServices.REGISTRIES.getKeyOrThrow(be.getType()) + " could not be rendered virtually.";
 				Ponder.LOGGER.error(message, e);
+			} finally {
+				ms.popPose();
 			}
-
-			ms.popPose();
 		}
 	}
 
@@ -460,11 +461,11 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 			if (state.getRenderShape() == RenderShape.MODEL) {
 				BakedModel model = CatnipClientServices.CLIENT_HOOKS.filterModelForRenderType(state, dispatcher.getBlockModel(state), layer);
 				if (model != null)
-					sbbBuilder.renderBlock(world, model, state, pos, poseStack, random);
+					sbbBuilder.bufferBlock(world, model, state, pos, poseStack, random);
 			}
 
 			if (!fluidState.isEmpty() && ItemBlockRenderTypes.getRenderLayer(fluidState) == layer)
-				dispatcher.renderLiquid(pos, world, sbbBuilder.unwrap(true), state, fluidState);
+				dispatcher.renderLiquid(pos, world, sbbBuilder.getBuffer(true), state, fluidState);
 		});
 		ModelBlockRenderer.clearCache();
 		world.popLight();
