@@ -1,7 +1,7 @@
 package net.createmod.catnip.platform;
 
-import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -10,10 +10,14 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import dev.engine_room.flywheel.lib.model.baked.EmptyVirtualBlockGetter;
 import io.github.fabricators_of_create.porting_lib.mixin.accessors.client.accessor.ParticleEngineAccessor;
+import io.github.fabricators_of_create.porting_lib.models.virtual.FixedColorTintingBakedModel;
 import net.createmod.catnip.platform.services.ModClientHooksHelper;
 import net.createmod.catnip.render.BasicFluidRenderer;
+import net.createmod.catnip.render.FabricShadedBlockSbbBuilder;
+import net.createmod.catnip.render.LayerFilteringBakedModel;
+import net.createmod.catnip.render.MultiLayerModelRenderer;
+import net.createmod.catnip.render.ShadedBlockSbbBuilder;
 import net.createmod.ponder.utility.VertexUtils;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
@@ -29,12 +33,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -51,16 +52,27 @@ public class FabricClientHooksHelper implements ModClientHooksHelper {
 	}
 
 	@Override
-	public void renderVirtualBlockStateModel(BlockRenderDispatcher dispatcher, PoseStack ms, VertexConsumer consumer,
-											 BlockState state, BakedModel model, float red, float green, float blue,
-											 RenderType layer) {
-		//BakedModel wrappedModel = DefaultLayerFilteringBakedModel.wrap(model);
-		dispatcher.getModelRenderer().renderModel(ms.last(), consumer, state, model, red, green, blue, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+	public ShadedBlockSbbBuilder createSbbBuilder() {
+		return new FabricShadedBlockSbbBuilder();
 	}
 
 	@Override
-	public void tesselateBlockVirtual(BlockRenderDispatcher dispatcher, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer consumer, boolean checkSides, RandomSource randomSource, long seed, int packedOverlay, RenderType renderType) {
+	@Nullable
+	public BakedModel filterModelForRenderType(BlockState state, BakedModel model, RenderType layer) {
+		if (model.isVanillaAdapter()) {
+			if (ItemBlockRenderTypes.getChunkRenderType(state) != layer) {
+				model = null;
+			}
+		} else {
+			model = LayerFilteringBakedModel.wrap(model, layer);
+		}
 
+		return model;
+	}
+
+	@Override
+	public void renderVirtualBlockStateModel(BakedModel model, PoseStack ms, BlockState state, Function<RenderType, VertexConsumer> bufferMap) {
+		MultiLayerModelRenderer.render(model, ms, state, bufferMap);
 	}
 
 	@Override
@@ -74,42 +86,14 @@ public class FabricClientHooksHelper implements ModClientHooksHelper {
 	}
 
 	@Override
-	public Iterable<RenderType> getRenderTypesForBlockModel(BlockState state, RandomSource random,
-															@Nullable BlockEntity BEWithModelData) {
-		return List.of(ItemBlockRenderTypes.getRenderType(state, false));
-	}
-
-	@Override
-	public boolean doesBlockModelContainRenderType(RenderType layer, BlockState state, RandomSource random,
-												   BlockEntity BEWithModelData) {
-		return ItemBlockRenderTypes.getChunkRenderType(state) == layer;
-	}
-
-	@Override
-	public void renderGuiGameElementModel(BlockRenderDispatcher blockRenderer, MultiBufferSource.BufferSource buffer,
-										  PoseStack ms, BlockState state, BakedModel blockModel, int color, BlockEntity BEwithModelData) {
+	public void renderGuiGameElementModel(BlockRenderDispatcher blockRenderer, MultiBufferSource.BufferSource bufferSource,
+										  PoseStack ms, BlockState state, BakedModel model, int color, BlockEntity BEwithModelData) {
 		int blockColor = Minecraft.getInstance()
 				.getBlockColors()
 				.getColor(state, null, null, 0);
-//			Color rgb = new Color(color == -1 ? this.color : color);
-//			blockRenderer.getModelRenderer()
-//				.renderModel(ms.last(), vb, blockState, blockModel, rgb.getRedAsFloat(), rgb.getGreenAsFloat(), rgb.getBlueAsFloat(),
-//					LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-		BakedModel model = blockModel;
-		//model = DefaultLayerFilteringBakedModel.wrap(model);
-		if (blockColor == -1) {
-			blockColor = color;
-		}
-		if (blockColor != -1) {
-			//FIXME missing FixedColorTintingBakedModel in porting lib
-			//model = FixedColorTintingBakedModel.wrap(model, blockColor);
-		}
+		model = FixedColorTintingBakedModel.wrap(model, blockColor == -1 ? color : blockColor);
 
-		RenderType renderType = ItemBlockRenderTypes.getChunkRenderType(state);
-		blockRenderer.getModelRenderer()
-				.tesselateBlock(EmptyVirtualBlockGetter.FULL_BRIGHT, model, state, BlockPos.ZERO, ms, buffer.getBuffer(
-						renderType), false, RandomSource.create(), 42L, OverlayTexture.NO_OVERLAY);
-
+		MultiLayerModelRenderer.render(model, ms, state, bufferSource::getBuffer);
 	}
 
 	@Override

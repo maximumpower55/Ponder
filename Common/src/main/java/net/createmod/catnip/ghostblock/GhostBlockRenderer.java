@@ -7,9 +7,9 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import net.createmod.catnip.placement.PlacementClient;
 import net.createmod.catnip.platform.CatnipClientServices;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
-import net.createmod.catnip.placement.PlacementClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
@@ -54,10 +54,7 @@ public abstract class GhostBlockRenderer {
 
 			ms.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
 
-			for (RenderType layer : CatnipClientServices.CLIENT_HOOKS.getRenderTypesForBlockModel(state, RandomSource.create(42L), null)) {
-				VertexConsumer vb = buffer.getEarlyBuffer(layer);
-				CatnipClientServices.CLIENT_HOOKS.renderVirtualBlockStateModel(dispatcher, ms, vb, state, model, 1f, 1f, 1f, layer);
-			}
+			CatnipClientServices.CLIENT_HOOKS.renderVirtualBlockStateModel(model, ms, state, buffer::getEarlyBuffer);
 
 			ms.popPose();
 		}

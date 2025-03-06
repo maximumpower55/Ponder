@@ -14,6 +14,10 @@ import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import dev.engine_room.flywheel.lib.transform.TransformStack;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.data.Pair;
+import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.outliner.AABBOutline;
 import net.createmod.catnip.platform.CatnipClientServices;
 import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.catnip.render.ShadedBlockSbbBuilder;
@@ -21,10 +25,6 @@ import net.createmod.catnip.render.SuperByteBuffer;
 import net.createmod.catnip.render.SuperByteBufferCache;
 import net.createmod.catnip.render.SuperByteBufferCache.Compartment;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.outliner.AABBOutline;
 import net.createmod.ponder.Ponder;
 import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.level.PonderLevel;
@@ -457,24 +457,14 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 			BlockState state = world.getBlockState(pos);
 			FluidState fluidState = world.getFluidState(pos);
 
-			poseStack.pushPose();
-			poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
-
 			if (state.getRenderShape() == RenderShape.MODEL) {
-				BlockEntity blockEntity = world.getBlockEntity(pos);
-				BakedModel model = dispatcher.getBlockModel(state);
-				long seed = state.getSeed(pos);
-				random.setSeed(seed);
-
-				if (CatnipClientServices.CLIENT_HOOKS.doesBlockModelContainRenderType(layer, state, random, blockEntity)) {
-					CatnipClientServices.CLIENT_HOOKS.tesselateBlockVirtual(world, dispatcher, model, state, pos, poseStack, sbbBuilder, true, random, seed, OverlayTexture.NO_OVERLAY, layer);
-				}
+				BakedModel model = CatnipClientServices.CLIENT_HOOKS.filterModelForRenderType(state, dispatcher.getBlockModel(state), layer);
+				if (model != null)
+					sbbBuilder.renderBlock(world, model, state, pos, poseStack, random);
 			}
 
 			if (!fluidState.isEmpty() && ItemBlockRenderTypes.getRenderLayer(fluidState) == layer)
 				dispatcher.renderLiquid(pos, world, sbbBuilder.unwrap(true), state, fluidState);
-
-			poseStack.popPose();
 		});
 		ModelBlockRenderer.clearCache();
 		world.popLight();

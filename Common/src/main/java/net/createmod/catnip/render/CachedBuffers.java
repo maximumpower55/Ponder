@@ -10,8 +10,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
-import net.createmod.catnip.render.SuperByteBufferCache.Compartment;
 import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.SuperByteBufferCache.Compartment;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -42,18 +42,18 @@ public class CachedBuffers {
 	 * @return the cached SuperByteBuffer
 	 */
 	public static SuperByteBuffer block(Compartment<BlockState> compartment, BlockState toRender) {
-		return SuperByteBufferCache.getInstance().get(compartment, toRender, () -> SuperBufferFactory.getInstance().createForBlock(toRender));
+		return SuperByteBufferCache.getInstance().get(compartment, toRender, () -> SuperBufferFactory.INSTANCE.createForBlock(toRender));
 	}
 
 	public static SuperByteBuffer partial(PartialModel partial, BlockState referenceState) {
 		return SuperByteBufferCache.getInstance().get(PARTIAL, partial,
-				() -> SuperBufferFactory.getInstance().createForBlock(partial.get(), referenceState));
+				() -> SuperBufferFactory.INSTANCE.createForBlock(partial.get(), referenceState));
 	}
 
 	public static SuperByteBuffer partial(PartialModel partial, BlockState referenceState,
 										  Supplier<PoseStack> modelTransform) {
 		return SuperByteBufferCache.getInstance().get(PARTIAL, partial,
-				() -> SuperBufferFactory.getInstance().createForBlock(partial.get(), referenceState, modelTransform.get()));
+				() -> SuperBufferFactory.INSTANCE.createForBlock(partial.get(), referenceState, modelTransform.get()));
 	}
 
 	public static SuperByteBuffer partialFacing(PartialModel partial, BlockState referenceState) {
@@ -74,7 +74,7 @@ public class CachedBuffers {
 	public static SuperByteBuffer partialDirectional(PartialModel partial, BlockState referenceState, Direction dir,
 													 Supplier<PoseStack> modelTransform) {
 		return SuperByteBufferCache.getInstance().get(DIRECTIONAL_PARTIAL, Pair.of(dir, partial),
-				() -> SuperBufferFactory.getInstance().createForBlock(partial.get(), referenceState, modelTransform.get()));
+				() -> SuperBufferFactory.INSTANCE.createForBlock(partial.get(), referenceState, modelTransform.get()));
 	}
 
 	public static Supplier<PoseStack> rotateToFace(Direction facing) {
