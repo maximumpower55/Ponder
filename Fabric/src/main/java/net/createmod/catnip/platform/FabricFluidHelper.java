@@ -2,7 +2,6 @@ package net.createmod.catnip.platform;
 
 import org.jetbrains.annotations.Nullable;
 
-import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
 import net.createmod.catnip.platform.services.ModFluidHelper;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -11,7 +10,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 
-public class FabricFluidHelper implements ModFluidHelper<FluidStack> {
+public class FabricFluidHelper implements ModFluidHelper {
 	@Override
 	public int getColor(Fluid fluid, long amount, @Nullable CompoundTag fluidData) {
 		return FluidVariantRendering.getColor(FluidVariant.of(fluid, fluidData));
@@ -33,12 +32,5 @@ public class FabricFluidHelper implements ModFluidHelper<FluidStack> {
 	@Override
 	public boolean isLighterThanAir(Fluid fluid) {
 		return FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid));
-	}
-
-	@Override
-	public FluidStack toStack(Fluid fluid, long amount, @Nullable CompoundTag fluidData) {
-		FluidStack fluidStack = new FluidStack(fluid, amount);
-		fluidStack.setTag(fluidData);
-		return fluidStack;
 	}
 }

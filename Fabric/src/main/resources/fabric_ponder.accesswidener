@@ -1,6 +1,10 @@
 accessWidener v2 named
 # Fabric
 accessible field com/mojang/blaze3d/vertex/BufferBuilder format Lcom/mojang/blaze3d/vertex/VertexFormat;
+
+accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
+accessible class net/minecraft/client/renderer/RenderType$CompositeState
+accessible field net/minecraft/client/gui/screens/Screen renderables Ljava/util/List;
 # Common
 accessible field net/minecraft/client/renderer/entity/ItemRenderer textureManager Lnet/minecraft/client/renderer/texture/TextureManager;
 accessible field net/minecraft/client/multiplayer/ClientPacketListener serverChunkRadius I

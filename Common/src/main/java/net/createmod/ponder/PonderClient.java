@@ -2,27 +2,24 @@ package net.createmod.ponder;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.event.ClientResourceReloadListener;
+import net.createmod.catnip.ghostblock.GhostBlocks;
 import net.createmod.catnip.gui.UIRenderHelper;
 import net.createmod.catnip.net.ClientboundSimpleActionPacket;
+import net.createmod.catnip.outliner.Outliner;
+import net.createmod.catnip.placement.PlacementClient;
 import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 import net.createmod.catnip.render.SuperByteBufferCache;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.ghostblock.GhostBlocks;
-import net.createmod.catnip.levelWrappers.WrappedClientLevel;
-import net.createmod.catnip.outliner.Outliner;
-import net.createmod.catnip.placement.PlacementClient;
 import net.createmod.ponder.command.SimplePonderActions;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.createmod.ponder.foundation.content.BasePonderPlugin;
 import net.createmod.ponder.foundation.content.DebugPonderPlugin;
 import net.createmod.ponder.foundation.element.WorldSectionElementImpl;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.Vec3;
 
 public class PonderClient {
@@ -80,24 +77,6 @@ public class PonderClient {
 
 	public static void invalidateRenderers() {
 		SuperByteBufferCache.getInstance().invalidate();
-	}
-
-	public static void onLoadWorld(LevelAccessor level) {
-		if (!level.isClientSide())
-			return;
-
-		if (level instanceof ClientLevel && !(level instanceof WrappedClientLevel)) {
-			invalidateRenderers();
-			AnimationTickHolder.reset();
-		}
-	}
-
-	public static void onUnloadWorld(LevelAccessor level) {
-		if (!level.isClientSide())
-			return;
-
-		invalidateRenderers();
-		AnimationTickHolder.reset();
 	}
 
 	public static boolean isGameActive() {

@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 
-public interface ModFluidHelper<R> {
+public interface ModFluidHelper {
 	int getColor(Fluid fluid, long amount, @Nullable CompoundTag fluidData);
 
 	int getLuminosity(Fluid fluid, long amount, @Nullable CompoundTag fluidData);
@@ -15,10 +15,4 @@ public interface ModFluidHelper<R> {
 	TextureAtlasSprite getStillTexture(Fluid fluid, long amount, @Nullable CompoundTag fluidData);
 
 	boolean isLighterThanAir(Fluid fluid);
-
-	default R toStack(Fluid fluid, long amount) {
-		return toStack(fluid, amount, null);
-	}
-
-	R toStack(Fluid fluid, long amount, @Nullable CompoundTag fluidData);
 }
