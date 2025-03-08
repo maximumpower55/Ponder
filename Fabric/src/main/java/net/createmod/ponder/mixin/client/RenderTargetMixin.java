@@ -4,6 +4,7 @@ import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -13,16 +14,26 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 
 import net.createmod.catnip.render.RenderTargetExtensions;
+import net.minecraft.client.Minecraft;
 
 // Based on https://github.com/iPortalTeam/ImmersivePortalsMod/blob/55c9c1e7e298e09d8d43b0114e64e30271aa43b6/imm_ptl_core/src/main/java/qouteall/imm_ptl/core/mixin/client/render/framebuffer/MixinRenderTarget.java#L3
 @Mixin(RenderTarget.class)
-public class RenderTargetMixin implements RenderTargetExtensions {
+public abstract class RenderTargetMixin implements RenderTargetExtensions {
+	@Shadow
+	public abstract void resize(int $$0, int $$1, boolean $$2);
+
+	@Shadow
+	public int viewWidth;
+	@Shadow
+	public int viewHeight;
+
 	@Unique
 	private boolean catnip$stencilEnabled;
 
 	@Override
 	public void catnip$enableStencil() {
 		this.catnip$stencilEnabled = true;
+		this.resize(this.viewWidth, this.viewHeight, Minecraft.ON_OSX);
 	}
 
 	@ModifyArgs(
