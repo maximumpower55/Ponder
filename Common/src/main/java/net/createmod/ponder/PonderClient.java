@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.createmod.catnip.event.ClientResourceReloadListener;
 import net.createmod.catnip.gui.UIRenderHelper;
-import net.createmod.catnip.net.ClientboundSimpleActionPacket;
+import net.createmod.catnip.net.packets.ClientboundSimpleActionPacket;
 import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;

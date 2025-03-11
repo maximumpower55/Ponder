@@ -2,6 +2,10 @@ package net.createmod.catnip.render;
 
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+
+import com.mojang.blaze3d.vertex.MeshData;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -25,9 +29,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class FabricShadedBlockSbbBuilder implements ShadedBlockSbbBuilder {
 	private final WrapperModel wrapperModel = new WrapperModel();
-	private final BufferBuilder bufferBuilder = new BufferBuilder(512);
+	private final ByteBufferBuilder byteBufferBuilder = new ByteBufferBuilder(512);
 	private final IntList shadeSwapVertices = new IntArrayList();
 
+	private BufferBuilder bufferBuilder;
 	private boolean currentShade;
 
 	@Override
@@ -38,7 +43,7 @@ public class FabricShadedBlockSbbBuilder implements ShadedBlockSbbBuilder {
 
 	@Override
 	public void begin() {
-		this.bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+		this.bufferBuilder = new BufferBuilder(this.byteBufferBuilder, VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
 		this.shadeSwapVertices.clear();
 		this.currentShade = true;
 	}
@@ -56,9 +61,17 @@ public class FabricShadedBlockSbbBuilder implements ShadedBlockSbbBuilder {
 	@Override
 	public SuperByteBuffer end() {
 		this.wrapperModel.setWrapped(null);
-		BufferBuilder.RenderedBuffer data = this.bufferBuilder.end();
-		MutableTemplateMesh mesh = new MutableTemplateMesh(data);
-		return new ShadeSeparatingSuperByteBuffer(mesh.toImmutable(), this.shadeSwapVertices.toIntArray());
+
+		MeshData data = this.bufferBuilder.build();
+		TemplateMesh mesh;
+		if (data != null) {
+			mesh = new MutableTemplateMesh(data);
+			data.close();
+		} else {
+			mesh = new TemplateMesh(0);
+		}
+
+		return new ShadeSeparatingSuperByteBuffer(mesh, this.shadeSwapVertices.toIntArray());
 	}
 
 	private void swapShade(boolean shade) {

@@ -66,70 +66,46 @@ public class MultiLayerModelRenderer implements VertexConsumer {
 		this.bufferDelegate = this.bufferMap.apply(blendMode == BlendMode.DEFAULT ? this.defaultLayer : blendMode.blockRenderLayer);
 	}
 
-	@Override
-	public VertexConsumer vertex(double x, double y, double z) {
-		this.bufferDelegate.vertex(x, y, z);
+	public VertexConsumer addVertex(float x, float y, float z) {
+		this.bufferDelegate.addVertex(x, y, z);
 		return this;
 	}
 
-	@Override
-	public VertexConsumer color(int red, int green, int blue, int alpha) {
-		this.bufferDelegate.color(red, green, blue, alpha);
+	public VertexConsumer setColor(int red, int green, int blue, int alpha) {
+		this.bufferDelegate.setColor(red, green, blue, alpha);
 		return this;
 	}
 
-	@Override
-	public VertexConsumer uv(float u, float v) {
-		this.bufferDelegate.uv(u, v);
+	public VertexConsumer setUv(float u, float v) {
+		this.bufferDelegate.setUv(u, v);
 		return this;
 	}
 
-	@Override
-	public VertexConsumer overlayCoords(int u, int v) {
-		this.bufferDelegate.overlayCoords(u, v);
+	public VertexConsumer setUv1(int u, int v) {
+		this.bufferDelegate.setUv1(u, v);
 		return this;
 	}
 
-	@Override
-	public VertexConsumer uv2(int u, int v) {
-		this.bufferDelegate.uv2(u, v);
+	public VertexConsumer setUv2(int u, int v) {
+		this.bufferDelegate.setUv2(u, v);
 		return this;
 	}
 
-	@Override
-	public VertexConsumer normal(float x, float y, float z) {
-		this.bufferDelegate.normal(x, y, z);
+	public VertexConsumer setNormal(float x, float y, float z) {
+		this.bufferDelegate.setNormal(x, y, z);
 		return this;
 	}
 
-	@Override
-	public void endVertex() {
-		this.bufferDelegate.endVertex();
+	public void addVertex(float x, float y, float z, int color, float u, float v, int packedOverlay, int packedLight, float normalX, float normalY, float normalZ) {
+		this.bufferDelegate.addVertex(x, y, z, color, u, v, packedOverlay, packedLight, normalX, normalY, normalZ);
 	}
 
-	@Override
-	public void defaultColor(int red, int green, int blue, int alpha) {
-		this.bufferDelegate.defaultColor(red, green, blue, alpha);
+	public void putBulkData(PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
+		this.bufferDelegate.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay);
 	}
 
-	@Override
-	public void unsetDefaultColor() {
-		this.bufferDelegate.unsetDefaultColor();
-	}
-
-	@Override
-	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-		this.bufferDelegate.vertex(x, y, z, red, green, blue, alpha, u, v, overlay, light, normalX, normalY, normalZ);
-	}
-
-	@Override
-	public void putBulkData(PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, int light, int overlay) {
-		this.bufferDelegate.putBulkData(pose, quad, red, green, blue, light, overlay);
-	}
-
-	@Override
-	public void putBulkData(PoseStack.Pose pose, BakedQuad quad, float[] brightnesses, float red, float green, float blue, int[] lights, int overlay, boolean readExistingColor) {
-		this.bufferDelegate.putBulkData(pose, quad, brightnesses, red, green, blue, lights, overlay, readExistingColor);
+	public void putBulkData(PoseStack.Pose pose, BakedQuad quad, float[] brightness, float red, float green, float blue, float alpha, int[] lightmap, int packedOverlay, boolean readAlpha) {
+		this.bufferDelegate.putBulkData(pose, quad, brightness, red, green, blue, alpha, lightmap, packedOverlay, readAlpha);
 	}
 
 	private final class WrapperModel extends ForwardingBakedModel {

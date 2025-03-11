@@ -16,6 +16,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.platform.CatnipClientServices;
 import net.createmod.catnip.platform.CatnipServices;
+import net.createmod.catnip.registry.RegisteredObjectsHelper;
 import net.createmod.catnip.render.ShadedBlockSbbBuilder;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.createmod.catnip.render.SuperByteBufferCache;
@@ -38,6 +39,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -46,6 +48,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -199,7 +202,7 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 		world.setMask(this.section);
 		Vec3 transformedTarget = reverseTransformVec(target);
 		BlockHitResult rayTraceBlocks = world.clip(new ClipContext(reverseTransformVec(source), transformedTarget,
-			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, null));
+			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, (Entity) null));
 		world.clearMask();
 
 		double t = rayTraceBlocks.getLocation()
@@ -431,7 +434,7 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 				renderer.render(be, pt, ms, buffer, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
 			} catch (Exception e) {
 				iterator.remove();
-				String message = "BlockEntity " + CatnipServices.REGISTRIES.getKeyOrThrow(be.getType()) + " could not be rendered virtually.";
+				String message = "BlockEntity " + RegisteredObjectsHelper.getKeyOrThrow(be.getType()) + " could not be rendered virtually.";
 				Ponder.LOGGER.error(message, e);
 			} finally {
 				ms.popPose();

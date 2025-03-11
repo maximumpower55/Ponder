@@ -45,9 +45,9 @@ public class FabricPonderClient implements ClientModInitializer {
 		});
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> PonderClient.onRenderWorld(context.matrixStack()));
 
-		HudRenderCallback.EVENT.register(PlacementClient::onRenderCrosshairOverlay);
+		HudRenderCallback.EVENT.register((graphics, deltaTracker) -> PlacementClient.onRenderCrosshairOverlay(graphics, AnimationTickHolder.getPartialTicksUI()));
 
-		ItemTooltipCallback.EVENT.register((stack, context, lines) -> PonderTooltipHandler.addToTooltip(lines, stack));
+		ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> PonderTooltipHandler.addToTooltip(lines, stack));
 		PonderKeybinds.register(KeyBindingHelper::registerKeyBinding);
 
 		ClientLifecycleEvents.CLIENT_STARTED.register($ -> PonderClient.modLoadCompleted());
@@ -60,7 +60,7 @@ public class FabricPonderClient implements ClientModInitializer {
 	private void prepareConfigUI() {
 		BaseConfigScreen.setDefaultActionFor(Ponder.MOD_ID, base -> base
 				.withButtonLabels("Client Settings", null, null)
-				.withSpecs(PonderConfig.Client().specification, null, null)
+				.withSpecs(PonderConfig.client().specification, null, null)
 		);
 	}
 }
