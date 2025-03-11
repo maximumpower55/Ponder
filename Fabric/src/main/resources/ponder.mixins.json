@@ -4,21 +4,20 @@
   "package": "net.createmod.ponder.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "accessor.BiomeManagerAccessor",
-    "accessor.EntityAccessor",
-    "accessor.MinecraftServerAccessor"
+    "accessor.EntityAccessor"
   ],
   "client": [
-    "accessor.TimerAccessor",
+    "client.AbstractContainerScreenMixin",
+    "client.GuiGraphicsMixin",
+    "client.ParticleEngineAccessor",
+    "client.RenderTargetMixin",
     "client.TextureAtlasMixin",
+    "client.TooltipRenderUtilMixin",
     "client.WindowResizeMixin",
     "client.accessor.BufferBuilderAccessor",
-    "client.accessor.ClientPacketListenerAccessor",
     "client.accessor.GameRendererAccessor",
-    "client.accessor.ItemRendererAccessor",
     "client.accessor.RenderSystemAccessor",
-    "client.accessor.RenderTypeAccessor",
-    "client.accessor.ScreenAccessor"
+    "client.accessor.RenderTypeAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

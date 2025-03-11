@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import io.github.fabricators_of_create.porting_lib.common.util.EnvExecutor;
 import net.createmod.catnip.platform.services.PlatformHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -41,11 +40,13 @@ public class FabricPlatformHelper implements PlatformHelper {
 
 	@Override
 	public void executeOnClientOnly(Supplier<Runnable> toRun) {
-		EnvExecutor.runWhenOn(EnvType.CLIENT, toRun);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+			toRun.get().run();
 	}
 
 	@Override
 	public void executeOnServerOnly(Supplier<Runnable> toRun) {
-		EnvExecutor.runWhenOn(EnvType.SERVER, toRun);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER)
+			toRun.get().run();
 	}
 }

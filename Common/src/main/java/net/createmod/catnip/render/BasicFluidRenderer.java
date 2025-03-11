@@ -11,8 +11,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
@@ -42,10 +41,10 @@ public class BasicFluidRenderer {
 	}
 
 	public static void renderFluidBox(Fluid fluid, long amount, float xMin, float yMin, float zMin, float xMax,
-									  float yMax, float zMax, VertexConsumer builder, PoseStack ms, int light, boolean renderBottom, boolean invertGasses, @Nullable DataComponentPatch fluidData) {
-		TextureAtlasSprite fluidTexture = Minecraft.getInstance()
-			.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-			.apply(CatnipServices.FLUID_HELPER.getStillTexture(fluid, amount, fluidData));
+			float yMax, float zMax, VertexConsumer builder, PoseStack ms, int light, boolean renderBottom, boolean invertGasses, @Nullable CompoundTag fluidData) {
+		TextureAtlasSprite fluidTexture = CatnipServices.FLUID_HELPER.getStillTexture(fluid, amount, fluidData);
+		if (fluidTexture == null)
+			return;
 
 		int color = CatnipServices.FLUID_HELPER.getColor(fluid, amount, fluidData);
 		int blockLightIn = (light >> 4) & 0xF;
@@ -172,5 +171,4 @@ public class BasicFluidRenderer {
 		;
 	}
 
-}
-
+	}

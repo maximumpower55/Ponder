@@ -11,7 +11,7 @@ import net.createmod.ponder.Ponder;
 public class CatnipServices {
 
 	public static final PlatformHelper PLATFORM = load(PlatformHelper.class);
-	public static final ModFluidHelper<?> FLUID_HELPER = load(ModFluidHelper.class);
+	public static final ModFluidHelper FLUID_HELPER = load(ModFluidHelper.class);
 	public static final ModHooksHelper HOOKS = load(ModHooksHelper.class);
 	public static final NetworkHelper NETWORK = load(NetworkHelper.class);
 

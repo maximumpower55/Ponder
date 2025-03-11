@@ -16,7 +16,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.platform.CatnipClientServices;
 import net.createmod.catnip.platform.CatnipServices;
-import net.createmod.catnip.registry.RegisteredObjectsHelper;
 import net.createmod.catnip.render.ShadedBlockSbbBuilder;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.createmod.catnip.render.SuperByteBufferCache;
@@ -200,7 +199,7 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 		world.setMask(this.section);
 		Vec3 transformedTarget = reverseTransformVec(target);
 		BlockHitResult rayTraceBlocks = world.clip(new ClipContext(reverseTransformVec(source), transformedTarget,
-			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
+			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, null));
 		world.clearMask();
 
 		double t = rayTraceBlocks.getLocation()
@@ -413,30 +412,30 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 	private void renderBlockEntities(PonderLevel world, PoseStack ms, MultiBufferSource buffer, float pt) {
 		loadBEsIfMissing(world);
 
-		Iterator<BlockEntity> iterator = renderedBlockEntities.iterator();
+		@SuppressWarnings("DataFlowIssue")
+		Iterator<BlockEntity> iterator = this.renderedBlockEntities.iterator();
+		BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
 		while (iterator.hasNext()) {
-			BlockEntity tile = iterator.next();
-			BlockEntityRenderer<BlockEntity> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tile);
+			BlockEntity be = iterator.next();
+			BlockEntityRenderer<BlockEntity> renderer = dispatcher.getRenderer(be);
 			if (renderer == null) {
 				iterator.remove();
 				continue;
 			}
 
-			BlockPos pos = tile.getBlockPos();
+			BlockPos pos = be.getBlockPos();
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
 
 			try {
-				renderer.render(tile, pt, ms, buffer, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
-
+				renderer.render(be, pt, ms, buffer, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
 			} catch (Exception e) {
 				iterator.remove();
-				String message = "BlockEntity " + RegisteredObjectsHelper.getKeyOrThrow(tile.getType())
-						.toString() + " could not be rendered virtually.";
+				String message = "BlockEntity " + CatnipServices.REGISTRIES.getKeyOrThrow(be.getType()) + " could not be rendered virtually.";
 				Ponder.LOGGER.error(message, e);
+			} finally {
+				ms.popPose();
 			}
-
-			ms.popPose();
 		}
 	}
 
@@ -457,24 +456,14 @@ public class WorldSectionElementImpl extends AnimatedSceneElementBase implements
 			BlockState state = world.getBlockState(pos);
 			FluidState fluidState = world.getFluidState(pos);
 
-			poseStack.pushPose();
-			poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
-
 			if (state.getRenderShape() == RenderShape.MODEL) {
-				BlockEntity blockEntity = world.getBlockEntity(pos);
-				BakedModel model = dispatcher.getBlockModel(state);
-				long seed = state.getSeed(pos);
-				random.setSeed(seed);
-
-				if (CatnipClientServices.CLIENT_HOOKS.doesBlockModelContainRenderType(layer, state, random, blockEntity)) {
-					CatnipClientServices.CLIENT_HOOKS.tesselateBlockVirtual(world, dispatcher, model, state, pos, poseStack, sbbBuilder, true, random, seed, OverlayTexture.NO_OVERLAY, layer);
-				}
+				BakedModel model = CatnipClientServices.CLIENT_HOOKS.filterModelForRenderType(state, dispatcher.getBlockModel(state), layer);
+				if (model != null)
+					sbbBuilder.bufferBlock(world, model, state, pos, poseStack, random);
 			}
 
 			if (!fluidState.isEmpty() && ItemBlockRenderTypes.getRenderLayer(fluidState) == layer)
-				dispatcher.renderLiquid(pos, world, sbbBuilder.unwrap(true), state, fluidState);
-
-			poseStack.popPose();
+				dispatcher.renderLiquid(pos, world, sbbBuilder.getBuffer(true), state, fluidState);
 		});
 		ModelBlockRenderer.clearCache();
 		world.popLight();

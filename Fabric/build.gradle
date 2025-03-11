@@ -18,10 +18,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    for (String module in port_lib_modules.split(",")) {
-        modApi "io.github.fabricators_of_create.Porting-Lib:$module:$port_lib_version"
-    }
-
     modApi "dev.engine-room.flywheel:flywheel-fabric-api-${minecraft_version}:${flywheel_version}"
     modImplementation "dev.engine-room.flywheel:flywheel-fabric-${minecraft_version}:${flywheel_version}"
 
