@@ -117,7 +117,14 @@ public class Glob {
 						throw new PatternSyntaxException("Cannot nest groups", globPattern, i - 1);
 					}
 
-					regex.append("(?:");
+					regex.append("(?");
+					if (next(globPattern, i) == '!') {
+						regex.append('!');
+						++i;
+					} else {
+						regex.append(":");
+					}
+
 					inGroup = true;
 				}
 				case '}' -> {
